@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
+from models import db, User, Character, Planet, Vehicle, User_Character_Favorite, User_Planet_Favorite, User_Vehicle_Favorite
 #from models import Person
 
 app = Flask(__name__)
@@ -41,134 +41,143 @@ def sitemap():
 @app.route('/users', methods=['GET'])
 def fetch_user():
 
-    response_body = {
-        "msg": "Hello, this is your GET /user response "
-    }
+    users = User.query.all()
+    all_users = list(map(lambda x: x.serialize(), users))
 
-    return jsonify(response_body), 200
+    return jsonify(all_users), 200
 
-@app.route('/users/favorites', methods=['GET'])
-def fetch_user_favorites():
+# @app.route('/users/favorites', methods=['GET'])
+# def fetch_user_favorites():
 
-    response_body = {
-        "msg": "Hello, this is your GET /user response "
-    }
+#     user_favorites = (className).query.all()
+#     all_characters = list(map(lambda x: x.serialize(), characters))
 
-    return jsonify(response_body), 200
+#     return jsonify(all_characters), 200
 
-# People App Routes
+# Character App Routes
 
-@app.route('/people', methods=['GET'])
-def fetch_people():
+@app.route('/characters', methods=['GET'])
+def fetch_characters():
 
-    response_body = {
-        "msg": "Hello, this is your GET /user response "
-    }
+    characters = Character.query.all()
+    all_characters = list(map(lambda x: x.serialize(), characters))
 
-    return jsonify(response_body), 200
+    return jsonify(all_characters), 200
 
-@app.route('/people/<int:people_id>', methods=['GET'])
-def fetch_person_info():
+@app.route('/characters/<int:character_id>', methods=['GET'])
+def fetch_character_info(character_id):
 
-    response_body = {
-        "msg": "Hello, this is your GET /user response "
-    }
-
-    return jsonify(response_body), 200
-
-@app.route('/favorite/people/<int:people_id>', methods=['POST'])
-def add_person_favorite():
+    character = db.get_or_404(Character, character_id)
 
     response_body = {
-        "msg": "Hello, this is your GET /user response "
+        "msg": "Character info received!"
     }
 
-    return jsonify(response_body), 200
+    return jsonify(character.serialize()), 200
 
-@app.route('/favorite/people/<int:people_id>', methods=['DELETE'])
-def delete_person_favorite():
+@app.route('/user/<int:user_id>/favorite/characters/<int:characters_id>', methods=['POST'])
+def add_character_favorite(user_id, character_id):
+    favorite_character = User_Character_Favorite(user_id = user_id, character_id = character_id)
+    
+    db.session.add(favorite_character)
+    db.session.commit()
 
+    return jsonify("Character favorited!"), 200
+
+@app.route('/user/<int:user_id>/favorite/characters/<int:characters_id>', methods=['DELETE'])
+def delete_character_favorite(user_id, character_id):
+    favorite_character = User_Character_Favorite.query.filter_by(user_id = user_id, character_id = character_id).first()
+    db.session.delete(favorite_character)
     response_body = {
-        "msg": "Hello, this is your GET /user response "
+        "msg": "Character favorite deleted!"
     }
 
-    return jsonify(response_body), 200
+    return jsonify("Character favorite deleted!"), 200
 
 # Planets App Routes
 
 @app.route('/planets', methods=['GET'])
 def fetch_planets():
 
-    response_body = {
-        "msg": "Hello, this is your GET /user response "
-    }
+    planets = Planet.query.all()
+    all_planets = list(map(lambda x: x.serialize(), planets))
 
-    return jsonify(response_body), 200
+    return jsonify(all_planets), 200
 
 @app.route('/planets/<int:planet_id>', methods=['GET'])
-def fetch_planet_info():
+def fetch_planet_info(planet_id):
+
+    planet = db.get_or_404(Planet, planet_id)
 
     response_body = {
         "msg": "Hello, this is your GET /user response "
     }
 
-    return jsonify(response_body), 200
+    return jsonify(planet.serialize()), 200
 
-@app.route('/favorite/planet/<int:planet_id>', methods=['POST'])
-def add_planet_favorite():
+@app.route('/user/<int:user_id>/favorite/planet/<int:planet_id>', methods=['POST'])
+def add_planet_favorite(user_id, planet_id):
 
+    favorite_planet = User_Planet_Favorite(user_id = user_id, planet_id = planet_id)
+    
+    db.session.add(favorite_planet)
+    db.session.commit()
+
+    return jsonify("Planet favorited!"), 200
+
+@app.route('/user/<int:user_id>/favorite/planet/<int:planet_id>', methods=['DELETE'])
+def delete_planet_favorite(user_id, planet_id):
+
+    favorite_planet = User_Planet_Favorite.query.filter_by(user_id = user_id, planet_id = planet_id).first()
+    db.session.delete(favorite_planet)
     response_body = {
-        "msg": "Hello, this is your GET /user response "
+        "msg": "Planet favorite deleted!"
     }
 
-    return jsonify(response_body), 200
-
-@app.route('/favorite/planet/<int:planet_id>', methods=['DELETE'])
-def delete_planet_favorite():
-
-    response_body = {
-        "msg": "Hello, this is your GET /user response "
-    }
-
-    return jsonify(response_body), 200
+    return jsonify("Planet favorite deleted!"), 200
 
 # Vehicle App Routes
 
 @app.route('/vehicles', methods=['GET'])
 def fetch_vehicles():
 
-    response_body = {
-        "msg": "Hello, this is your GET /user response "
-    }
+    vehicles = Vehicle.query.all()
+    all_vehicles = list(map(lambda x: x.serialize(), vehicles))
 
-    return jsonify(response_body), 200
+    return jsonify(all_vehicles), 200
 
 @app.route('/vehicles/<int:vehicle_id>', methods=['GET'])
-def fetch_vehicle_info():
+def fetch_vehicle_info(vehicle_id):
+
+    vehicle = db.get_or_404(Vehicle, vehicle_id)
 
     response_body = {
         "msg": "Hello, this is your GET /user response "
     }
 
-    return jsonify(response_body), 200
+    return jsonify(vehicle.serialize()), 200
 
-@app.route('/favorite/vehicle/<int:vehicle_id>', methods=['POST'])
-def add_vehicle_favorite():
+@app.route('/user/<int:user_id>/favorite/vehicle/<int:vehicle_id>', methods=['POST'])
+def add_vehicle_favorite(user_id, vehicle_id):
 
+    favorite_vehicle = User_Vehicle_Favorite(user_id = user_id, vehicle_id = vehicle_id)
+    
+    db.session.add(favorite_vehicle)
+    db.session.commit()
+
+    return jsonify("Vehicle favorited!"), 200
+
+@app.route('/user/<int:user_id>/favorite/vehicle/<int:vehicle_id>', methods=['DELETE'])
+def delete_vehicle_favorite(user_id, vehicle_id):
+
+    favorite_vehicle = User_Vehicle_Favorite.query.filter_by(user_id = user_id, vehicle_id = vehicle_id).first()
+    db.session.delete(favorite_vehicle)
     response_body = {
-        "msg": "Hello, this is your GET /user response "
+        "msg": "Vehicle favorite deleted!"
     }
 
-    return jsonify(response_body), 200
+    return jsonify("Vehicle favorite deleted!"), 200
 
-@app.route('/favorite/vehicle/<int:vehicle_id>', methods=['DELETE'])
-def delete_vehicle_favorite():
-
-    response_body = {
-        "msg": "Hello, this is your GET /user response "
-    }
-
-    return jsonify(response_body), 200
 
 
 # this only runs if `$ python src/app.py` is executed
